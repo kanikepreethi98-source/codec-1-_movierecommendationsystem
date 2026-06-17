@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineMatch AI - Smart Movie Recommendation System</title>
+  <meta name="description" content="Get personalized movie recommendations using Content-Based and Collaborative Filtering algorithms. Rate movies, filter by genre, and find your next watch.">
+  
+  <!-- SEO & OpenGraph Tags -->
+  <meta property="og:title" content="CineMatch AI - Smart Movie Recommendation System">
+  <meta property="og:description" content="Get personalized movie recommendations using Content-Based and Collaborative Filtering algorithms.">
+  <meta property="og:type" content="website">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <div class="app-container">
+    
+    <!-- Sidebar / Control Panel -->
+    <aside class="sidebar glass-panel">
+      <!-- Brand Logo & Header -->
+      <div class="brand">
+        <span class="brand-logo">🍿</span>
+        <div class="brand-name">
+          CineMatch AI
+          <span class="brand-subtitle">Recommendation Engine</span>
+        </div>
+      </div>
+      
+      <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 0.5rem 0;" />
+      
+      <!-- Algorithm Selection -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">
+          <span>Engine Model</span>
+        </div>
+        <div class="algorithm-selector">
+          <button id="btn-content-based" class="pill-button active" onclick="setRecommendationMode('content')">
+            Content-Based <span class="badge">Genre & Cast</span>
+          </button>
+          <button id="btn-collaborative" class="pill-button" onclick="setRecommendationMode('collaborative')">
+            Collaborative <span class="badge">Social CF</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- User Ratings Log -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">
+          <span>My Ratings (<span id="user-ratings-count">0</span>)</span>
+          <button id="btn-clear-ratings" class="clear-all-btn hidden" onclick="clearAllRatings()">Clear All</button>
+        </div>
+        <div id="rated-movies-container" class="rated-movies-list">
+          <div style="color: var(--color-text-dim); font-size: 0.8rem; font-style: italic; padding: 0.5rem 0;">
+            No movies rated yet. Rate movies below to generate recommendations!
+          </div>
+        </div>
+      </div>
+      
+      <!-- Genre Preferences Profile -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">
+          <span>Genre Profile</span>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.75rem; line-height: 1.3;">
+          Click genres to filter the catalog. Rate movies to feed your genre interest graph automatically!
+        </p>
+        <div id="genre-filter-container" class="genre-list">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Header bar with Search and Stats -->
+      <header class="main-header">
+        <div class="search-container">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="catalog-search" class="search-input" placeholder="Search movies, directors, actors..." oninput="handleSearch(this.value)">
+        </div>
+        
+        <div class="app-stats">
+          <div class="stat-chip">
+            Mode: <span id="stat-mode-badge">Content-Based</span>
+          </div>
+          <div class="stat-chip">
+            Rated: <span id="stat-rated-count">0</span>
+          </div>
+        </div>
+      </header>
+      
+      <!-- Top/Featured Recommendation Banner -->
+      <section id="hero-recommendation-section" class="section-container hidden">
+        <div class="section-header">
+          <h2 class="section-title">Top Pick for You</h2>
+          <span class="section-subtitle">Based on your highest-rated films</span>
+        </div>
+        
+        <div id="hero-banner" class="hero-recommendation-banner" onclick="openMovieDetail(this.dataset.movieId)">
+          <div class="hero-gradient-bg" id="hero-gradient"></div>
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <div class="hero-info">
+              <span class="hero-tag" id="hero-algorithm-tag">Content Match</span>
+              <h1 class="hero-title" id="hero-title">Movie Title</h1>
+              <div class="hero-meta">
+                <span id="hero-year">2026</span>
+                <span id="hero-duration">2h 10m</span>
+                <span id="hero-genres">Action, Adventure</span>
+              </div>
+              <p class="hero-desc" id="hero-description">Movie synopsis goes here. Extremely descriptive content explaining the movie background, director, and interesting facts.</p>
+            </div>
+            
+            <div class="hero-explanation">
+              <span class="explanation-title">Why Suggested?</span>
+              <div class="explanation-reason" id="hero-reason">Because you liked Inception</div>
+              <div class="explanation-score" id="hero-score">Match Score: 4.8</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Recommended Movies Grid -->
+      <section class="section-container">
+        <div class="section-header">
+          <h2 class="section-title">Recommended for You</h2>
+          <span class="section-subtitle" id="recommendations-subtitle">Provide ratings below to seed recommendations</span>
+        </div>
+        
+        <div id="recommendations-grid" class="movie-grid">
+          <!-- Initial Empty State -->
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">✨</div>
+            <h3 class="empty-state-title">Recommendation Engine Offline</h3>
+            <p class="empty-state-desc">
+              Rate a few movies in the catalog below (click the stars) to seed your taste profile. CineMatch AI will instantly compute recommendations!
+            </p>
+          </div>
+        </div>
+      </section>
+      
+      <!-- All Movies Catalog -->
+      <section class="section-container" style="margin-top: 1rem;">
+        <div class="section-header">
+          <h2 class="section-title">Explore Movies</h2>
+          <span class="section-subtitle" id="catalog-count-label">Showing all movies</span>
+        </div>
+        
+        <div id="catalog-grid" class="movie-grid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </section>
+      
+    </main>
+    
+  </div>
+  
+  <!-- Movie Details Sliding Drawer -->
+  <div id="movie-drawer-backdrop" class="movie-drawer-backdrop" onclick="closeMovieDetail()"></div>
+  <div id="movie-drawer" class="movie-drawer">
+    <button class="drawer-close-btn" onclick="closeMovieDetail()">✕</button>
+    
+    <div id="drawer-header" class="drawer-header">
+      <div class="poster-art-bg" id="drawer-art-bg"></div>
+      <div class="poster-art-overlay"></div>
+    </div>
+    
+    <div class="drawer-content">
+      <div>
+        <h1 class="drawer-title" id="drawer-title">Inception</h1>
+        <div class="hero-meta" style="margin-top: 0.5rem;" id="drawer-meta">
+          <span>2010</span>
+          <span>2h 28m</span>
+        </div>
+      </div>
+      
+      <div class="drawer-rating-row">
+        <div style="display:flex; flex-direction:column; gap:0.25rem;">
+          <span class="rate-label">Your Rating</span>
+          <span id="drawer-user-rating-text" style="font-size:0.85rem; font-weight:600; color:var(--color-text-muted);">Not Rated</span>
+        </div>
+        <div class="star-rating" id="drawer-star-rating">
+          <!-- Star controls -->
+        </div>
+      </div>
+      
+      <div class="drawer-field">
+        <span class="drawer-field-label">Genres</span>
+        <div class="drawer-genres" id="drawer-genres">
+          <!-- badges -->
+        </div>
+      </div>
+      
+      <div class="drawer-field">
+        <span class="drawer-field-label">Synopsis</span>
+        <p class="drawer-field-value" id="drawer-description" style="line-height: 1.6; color: var(--color-text-muted);">
+          A thief who steals corporate secrets through the use of dream-sharing technology...
+        </p>
+      </div>
+      
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="drawer-field">
+          <span class="drawer-field-label">Director</span>
+          <span class="drawer-field-value" id="drawer-director">Christopher Nolan</span>
+        </div>
+        <div class="drawer-field">
+          <span class="drawer-field-label">Duration</span>
+          <span class="drawer-field-value" id="drawer-duration-val">2h 28m</span>
+        </div>
+      </div>
+      
+      <div class="drawer-field">
+        <span class="drawer-field-label">Starring Cast</span>
+        <div class="drawer-cast-list" id="drawer-cast">
+          <!-- Cast members -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Javascript Scripts -->
+  <script src="dataset.js"></script>
+  <script src="recommendation.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
